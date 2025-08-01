@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Service - ReyStore</title>
+<style>
+body {
+  margin: 0; font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  color: white; height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+}
+.card {background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px;}
+#aiButton {
+  position: fixed; bottom: 20px; right: 20px;
+  width: 60px; height: 60px; border-radius: 50%;
+  background: gold; color: black; font-weight: bold; font-size: 18px;
+  border: none; cursor: pointer;
+}
+#chatPopup {
+  position: fixed; bottom: 90px; right: 20px;
+  width: 300px; max-height: 70vh;
+  background: rgba(255,255,255,0.1); backdrop-filter: blur(8px);
+  border-radius: 12px; padding: 10px; display: none;
+  flex-direction: column;
+}
+#chatMessages {flex:1; overflow-y:auto; margin-bottom:10px;}
+.msg {margin:5px 0; padding:8px; border-radius:8px; max-width:80%;}
+.user {background: gold; color: black; align-self:flex-end;}
+.bot {background: rgba(255,255,255,0.2);}
+.inputRow {display: flex; gap: 5px;}
+.inputRow input {flex: 1; padding: 5px;}
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>Customer Service ReyStore</h2>
+  <p>Gunakan tombol AI di kanan bawah untuk kirim pesan.</p>
+</div>
+
+<button id="aiButton" onclick="toggleChat()">AI</button>
+<div id="chatPopup">
+  <div id="chatMessages"></div>
+  <div class="inputRow">
+    <input type="text" id="chatInput" placeholder="Tulis pesan...">
+    <button onclick="sendMessage()">Kirim</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { getDatabase, push, ref, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAcFRkbZT3PD3BDObS-7T1769uH5Macvd0",
+  authDomain: "reystore-support.firebaseapp.com",
+  databaseURL: "https://reystore-support-default-rtdb.firebaseio.com",
+  projectId: "reystore-support",
+  storageBucket: "reystore-support.firebasestorage.app",
+  messagingSenderId: "446513200960",
+  appId: "1:446513200960:web:cbd40ca4315a8bf47044a5",
+  measurementId: "G-YEBFKLREK5"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+function addMsg(text, sender){
+  const div=document.createElement('div');
+  div.className='msg '+sender;
+  div.textContent=text;
+  document.getElementById('chatMessages').appendChild(div);
+}
+
+window.toggleChat = function(){
+  const pop = document.getElementById('chatPopup');
+  pop.style.display = (pop.style.display==='flex') ? 'none' : 'flex';
+}
+
+window.sendMessage = function(){
+  const input=document.getElementById('chatInput');
+  const text=input.value.trim();
+  if(!text)return;
+  addMsg(text,'user');
+  input.value='';
+
+  // Simpan ke Firebase
+  push(ref(db, 'messages'), {
+    text: text,
+    timestamp: serverTimestamp()
+  });
+
+  addMsg('Pesan kamu sudah dikirim ke admin.','bot');
+}
+</script>
+</body>
+</html>
