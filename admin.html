@@ -84,8 +84,9 @@
 <header>Panel Admin - Chat</header>
 
 <div id="login" style="text-align:center; padding:30px;">
-  <p>Masukkan kode admin:</p>
-  <input type="password" id="kode" placeholder="Kode admin">
+  <p>Masukkan username dan kode admin:</p>
+  <input type="text" id="usernameAdmin" placeholder="Username">
+  <input type="password" id="kode" placeholder="Kode admin (1-6)">
   <button onclick="cekKode()">Masuk</button>
 </div>
 
@@ -123,11 +124,14 @@ const db = getDatabase(app);
 
 let adminName = "";
 window.cekKode = function() {
-  const kode = document.getElementById("kode").value;
-  if (kode === "reyadmin") adminName = "Rey";
-  else if (kode === "nindiaadmin") adminName = "Nindia";
-  else return alert("Kode salah!");
-
+  const kode = document.getElementById("kode").value.trim();
+  const user = document.getElementById("usernameAdmin").value.trim();
+  if (!user) return alert("Masukkan username admin!");
+  if (kode === "123456") {
+    adminName = user;
+  } else {
+    return alert("Kode salah!");
+  }
   document.getElementById("login").style.display = "none";
   document.getElementById("app").style.display = "flex";
 };
@@ -140,7 +144,6 @@ let currentChat = null;
 let currentOwner = null;
 let unsubscribe = null;
 
-// daftar chat
 function refreshRoomList(id, data) {
   let room = roomsDiv.querySelector(`.room[data-id="${id}"]`);
   if (!room) {
@@ -172,7 +175,6 @@ async function openChat(id) {
   const chatData = chatSnap.val();
   currentOwner = chatData.owner || null;
 
-  // Jika belum ada owner, ambil chat ini
   if (!currentOwner) {
     await update(ref(db, "chats/" + id), { owner: adminName });
     currentOwner = adminName;
@@ -186,17 +188,27 @@ async function openChat(id) {
   const chatRef = ref(db, "chats/" + id + "/messages");
   unsubscribe = onChildAdded(chatRef, (s) => {
     const d = s.val();
+    let timeText = "";
+    if (d.time) {
+      const date = new Date(d.time);
+      let h = date.getHours();
+      let m = date.getMinutes().toString().padStart(2,'0');
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12;
+      if (h === 0) h = 12;
+      timeText = `${h}:${m} ${ampm}`;
+    }
+
     const div = document.createElement('div');
     div.className = 'msg';
     if (d.sender === 'admin') div.classList.add('admin');
     else if (d.sender === 'info') div.classList.add('info');
     else div.classList.add('user');
-    div.textContent = (d.sender === 'info') ? d.text : d.text;
+    div.innerHTML = `<div>${d.text}</div><div style="font-size:11px;opacity:0.7;margin-top:3px;">${timeText}</div>`;
     messagesBox.appendChild(div);
     messagesBox.scrollTop = messagesBox.scrollHeight;
   });
 
-  // mode HP
   if (window.innerWidth <= 768) {
     document.querySelector('.rooms').style.display = 'none';
     document.querySelector('.messages').classList.add('active');
@@ -231,4 +243,4 @@ window.hapusChat = function() {
 };
 </script>
 </body>
-        </html>
+</html>
