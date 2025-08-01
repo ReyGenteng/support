@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Chat - ReyStore</title>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#141e30,#243b55);
+  color: white;
+  padding: 20px;
+}
+h1 { text-align: center; }
+#messages { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+.message {
+  background: rgba(255,255,255,0.1);
+  padding: 10px; border-radius: 10px;
+}
+.message strong { color: gold; }
+.reply-box { margin-top: 10px; display: flex; gap: 5px; }
+.reply-box input { flex: 1; padding: 5px; }
+</style>
+</head>
+<body>
+<h1>Admin Chat ReyStore</h1>
+<p>Semua pesan dari user akan muncul di sini (Realtime).</p>
+<div id="messages"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAcFRkbZT3PD3BDObS-7T1769uH5Macvd0",
+  authDomain: "reystore-support.firebaseapp.com",
+  databaseURL: "https://reystore-support-default-rtdb.firebaseio.com",
+  projectId: "reystore-support",
+  storageBucket: "reystore-support.firebasestorage.app",
+  messagingSenderId: "446513200960",
+  appId: "1:446513200960:web:cbd40ca4315a8bf47044a5",
+  measurementId: "G-YEBFKLREK5"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const messagesRef = ref(db, 'messages');
+const messagesDiv = document.getElementById('messages');
+
+onValue(messagesRef, (snapshot) => {
+  messagesDiv.innerHTML = '';
+  snapshot.forEach(child => {
+    const data = child.val();
+    const key = child.key;
+
+    const div = document.createElement('div');
+    div.className = 'message';
+    div.innerHTML = `
+      <strong>Pesan:</strong> ${data.text}<br>
+      <strong>Balasan:</strong> ${data.reply ? data.reply : '<em>Belum dibalas</em>'}
+      <div class="reply-box">
+        <input type="text" id="reply-${key}" placeholder="Tulis balasan...">
+        <button onclick="replyMsg('${key}')">Balas</button>
+      </div>
+    `;
+    messagesDiv.appendChild(div);
+  });
+});
+
+window.replyMsg = function(key){
+  const input = document.getElementById('reply-'+key);
+  const replyText = input.value.trim();
+  if(!replyText)return;
+  update(ref(db, 'messages/'+key), { reply: replyText });
+  input.value = '';
+  alert("Balasan terkirim!");
+}
+</script>
+</body>
+</html>
