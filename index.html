@@ -5,78 +5,177 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chat Support - ReyStore</title>
 <style>
-  * {box-sizing: border-box;}
+  * { box-sizing: border-box; }
   body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: #eceff1;
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    background: url('wallpaper.png') center/cover no-repeat fixed;
+    transition: background 0.5s, color 0.3s;
   }
+  body.light {
+    background: #eceff1;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.4);
+    border-radius: 10px;
+  }
+  body.light ::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.3);
+  }
+
+  .theme-switch {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: white;
+    z-index: 2;
+    text-shadow: 0 0 5px #000;
+  }
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+  }
+  .switch input { display: none; }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(255,255,255,0.4);
+    transition: .4s;
+    border-radius: 34px;
+    backdrop-filter: blur(5px);
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 20px; width: 20px;
+    left: 3px; bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: .4s;
+  }
+  input:checked + .slider {
+    background-color: #00aaff;
+  }
+  input:checked + .slider:before {
+    transform: translateX(24px);
+  }
+
   .chat-container {
     display: flex;
     flex-direction: column;
-    background: white;
+    background: rgba(0,0,0,0.6);
+    color: white;
     width: 100%;
     max-width: 500px;
-    height: 100vh;
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    height: 88vh;
+    border-radius: 20px;
+    backdrop-filter: blur(15px);
+    overflow: hidden;
+    box-shadow: 0 0 25px rgba(0,170,255,0.4);
+    transition: background 0.4s, color 0.4s;
+    border: 2px solid rgba(255,255,255,0.2);
   }
+  body.light .chat-container {
+    background: rgba(255,255,255,0.9);
+    color: black;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border: 2px solid #ccc;
+  }
+
   .chat-header {
-    background: #00aaff;
+    background: linear-gradient(90deg,#00aaff,#005577);
     color: white;
     padding: 15px;
     font-size: 18px;
     font-weight: bold;
     text-align: center;
+    letter-spacing: 1px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.4);
   }
+
   .messages {
     flex: 1;
     padding: 15px;
     overflow-y: auto;
-    background: #f5f5f5;
+    background: transparent;
+  }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
   }
   .bubble {
     max-width: 80%;
     padding: 10px 14px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     border-radius: 15px;
     clear: both;
     position: relative;
+    animation: popIn 0.25s ease;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
   }
   .bubble.user {
-    background: #00aaff;
+    background: linear-gradient(135deg,#00d4ff,#0088cc);
     color: white;
     float: right;
     border-bottom-right-radius: 0;
+    box-shadow: 0 0 10px rgba(0,180,255,0.5);
   }
   .bubble.admin {
-    background: #e0e0e0;
+    background: #bbbbbb;
+    color: black;
     float: left;
     border-bottom-left-radius: 0;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  }
+  .bubble.info {
+    background: rgba(255,255,255,0.25);
+    color: white;
+    text-align: center;
+    float: none;
+    margin: 0 auto;
+    box-shadow: none;
   }
   .time {
     font-size: 11px;
-    color: #444;
     margin-top: 4px;
+    text-align: right;
+    opacity: 0.8;
   }
-  .bubble.user .time { color: #ddd; }
+
   .chat-input {
     display: flex;
     padding: 10px;
-    background: #fff;
-    border-top: 1px solid #ddd;
+    gap: 6px;
+    background: rgba(255,255,255,0.9);
+  }
+  body:not(.light) .chat-input {
+    background: rgba(0,0,0,0.3);
   }
   .chat-input input {
-    flex: 1;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 20px;
-    margin-right: 10px;
     outline: none;
+    font-size: 14px;
   }
+  #nama { width: 80px; }
+  #pesan { flex: 1; }
   .chat-input button {
     background: #00aaff;
     color: white;
@@ -86,19 +185,33 @@
     height: 45px;
     cursor: pointer;
     font-size: 18px;
+    transition: background 0.3s;
+  }
+  .chat-input button:hover {
+    background: #0088cc;
   }
 </style>
 </head>
 <body>
+<div class="theme-switch">
+  <span>🌙</span>
+  <label class="switch">
+    <input type="checkbox" id="themeToggle">
+    <span class="slider"></span>
+  </label>
+</div>
+
 <div class="chat-container">
   <div class="chat-header">Support ReyStore</div>
   <div class="messages" id="messages"></div>
   <div class="chat-input">
-    <input type="text" id="nama" placeholder="Nama kamu" style="max-width:120px;">
+    <input type="text" id="nama" placeholder="Nama">
     <input type="text" id="pesan" placeholder="Tulis pesan...">
     <button onclick="kirimPesan()">➤</button>
   </div>
 </div>
+
+<audio id="notifSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
@@ -120,22 +233,36 @@
 
   let chatId = null;
   const messagesDiv = document.getElementById("messages");
+  const notifSound = document.getElementById("notifSound");
 
-  function formatWIB(timestamp) {
-    return new Intl.DateTimeFormat("id-ID", {
+  if ("Notification" in window && Notification.permission !== "granted") {
+    Notification.requestPermission();
+  }
+
+  function formatTime(timestamp) {
+    return new Intl.DateTimeFormat("en-US", {
       timeZone: "Asia/Jakarta",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit"
+      hour12: true
     }).format(new Date(timestamp));
+  }
+
+  function showNotification(text) {
+    notifSound.play();
+    if (navigator.vibrate) navigator.vibrate(200);
+    if (document.hidden && "Notification" in window && Notification.permission === "granted") {
+      new Notification("Pesan Baru", { body: text, icon: "wallpaper.png" });
+    }
   }
 
   function addBubble(sender, text, time) {
     const div = document.createElement("div");
     div.className = `bubble ${sender}`;
-    div.innerHTML = `${text}<div class="time">${formatWIB(time)}</div>`;
+    div.innerHTML = `${text}<div class="time">${formatTime(time)}</div>`;
     messagesDiv.appendChild(div);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    if (sender === "admin") showNotification(text);
   }
 
   function kirimPesan() {
@@ -162,6 +289,10 @@
   }
 
   window.kirimPesan = kirimPesan;
+
+  document.getElementById("themeToggle").addEventListener("change", e => {
+    document.body.classList.toggle("light", e.target.checked);
+  });
 </script>
 </body>
 </html>
