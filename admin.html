@@ -5,15 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Panel Admin - Chat</title>
 <style>
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+
   body {
-    margin: 0;
     font-family: Arial, sans-serif;
     background: linear-gradient(135deg, #1a1a1a, #2c2c2c);
     color: #fff;
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100%;
   }
   header {
     padding: 15px;
@@ -21,8 +22,14 @@
     font-size: 22px;
     font-weight: bold;
     background: #00aaff;
+    flex-shrink: 0;
   }
-  .container { display: flex; flex: 1; overflow: hidden; }
+  .container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    height: 100%;
+  }
   .rooms {
     width: 30%;
     max-width: 280px;
@@ -37,36 +44,82 @@
   }
   .room:hover { background: #333; }
   .messages {
-    flex: 1; display: flex; flex-direction: column; background: #1e1e1e;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #1e1e1e;
+    overflow: hidden;
+    height: 100%;
   }
   #chatHeader {
-    padding: 10px; background: #111; text-align: center;
-    border-bottom: 1px solid #444; font-weight: bold;
+    padding: 10px;
+    background: #111;
+    text-align: center;
+    border-bottom: 1px solid #444;
+    font-weight: bold;
+    flex-shrink: 0;
   }
   #messagesBox {
-    flex: 1; overflow-y: auto; padding: 15px;
-    display: flex; flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
   }
   .msg {
-    margin: 5px 0; padding: 8px 12px; border-radius: 12px; max-width: 75%;
+    margin: 5px 0;
+    padding: 8px 12px;
+    border-radius: 12px;
+    max-width: 75%;
     word-wrap: break-word;
   }
   .msg.user { background: #333; align-self: flex-start; }
   .msg.admin { background: #0078d7; align-self: flex-end; }
   .msg.info { background: #555; align-self: center; font-style: italic; }
+  .time { font-size: 11px; opacity: 0.7; margin-top: 3px; }
   .input-area {
-    display: flex; padding: 10px; border-top: 1px solid #444; background: #222;
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #444;
+    background: #222;
+    flex-shrink: 0;
   }
   .input-area input {
-    flex: 1; padding: 10px; border: none; border-radius: 8px;
-    margin-right: 10px; background: #333; color: white;
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    margin-right: 10px;
+    background: #333;
+    color: white;
   }
   .input-area button {
-    padding: 10px 20px; border: none; border-radius: 8px;
-    background: #00aaff; color: white; font-weight: bold; cursor: pointer;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #00aaff;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
   }
   .input-area button:hover { background: #0088cc; }
   .back-btn { display: none; }
+
+  #newMessageBtn {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #00aaff;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: none;
+    z-index: 10;
+    font-size: 14px;
+  }
 
   @media (max-width: 768px) {
     .container { flex-direction: column; }
@@ -96,6 +149,7 @@
     <button class="back-btn" onclick="kembaliDaftar()">← Kembali ke daftar</button>
     <div id="chatHeader">Pilih chat</div>
     <div id="messagesBox"></div>
+    <button id="newMessageBtn" onclick="scrollToBottom()">Pesan Baru</button>
     <div class="input-area">
       <input id="reply" placeholder="Tulis balasan...">
       <button onclick="sendReply()">Kirim</button>
@@ -138,11 +192,25 @@ window.cekKode = function() {
 
 const roomsDiv = document.getElementById('rooms');
 const messagesBox = document.getElementById('messagesBox');
+const newMsgBtn = document.getElementById('newMessageBtn');
 const chatHeader = document.getElementById('chatHeader');
 
 let currentChat = null;
 let currentOwner = null;
 let unsubscribe = null;
+let autoScroll = true;
+
+messagesBox.addEventListener('scroll', () => {
+  const nearBottom = messagesBox.scrollTop + messagesBox.clientHeight >= messagesBox.scrollHeight - 20;
+  autoScroll = nearBottom;
+  newMsgBtn.style.display = autoScroll ? 'none' : 'block';
+});
+
+function scrollToBottom() {
+  messagesBox.scrollTop = messagesBox.scrollHeight;
+  autoScroll = true;
+  newMsgBtn.style.display = 'none';
+}
 
 function refreshRoomList(id, data) {
   let room = roomsDiv.querySelector(`.room[data-id="${id}"]`);
@@ -204,15 +272,20 @@ async function openChat(id) {
     if (d.sender === 'admin') div.classList.add('admin');
     else if (d.sender === 'info') div.classList.add('info');
     else div.classList.add('user');
-    div.innerHTML = `<div>${d.text}</div><div style="font-size:11px;opacity:0.7;margin-top:3px;">${timeText}</div>`;
+    div.innerHTML = `<div>${d.text}</div><div class="time">${timeText}</div>`;
     messagesBox.appendChild(div);
-    messagesBox.scrollTop = messagesBox.scrollHeight;
+
+    if (autoScroll) scrollToBottom();
+    else newMsgBtn.style.display = 'block';
   });
 
   if (window.innerWidth <= 768) {
     document.querySelector('.rooms').style.display = 'none';
     document.querySelector('.messages').classList.add('active');
   }
+
+  // Scroll ke bawah langsung setelah buka chat
+  setTimeout(scrollToBottom, 100);
 }
 
 window.kembaliDaftar = function() {
@@ -241,6 +314,8 @@ window.hapusChat = function() {
   currentChat = null;
   if (window.innerWidth <= 768) kembaliDaftar();
 };
+
+window.scrollToBottom = scrollToBottom;
 </script>
 </body>
 </html>
