@@ -125,7 +125,7 @@
     border-top: 1px solid #ddd;
     gap: 8px;
   }
-  .chat-input input {
+  .chat-input input, .chat-input select {
     flex: 1;
     border: none;
     padding: 12px 18px;
@@ -206,6 +206,7 @@
         <option value="Billing">Billing</option>
       </select>
       <input type="text" id="nama" placeholder="Tulis Nama Anda">
+      <button onclick="mulaiChat()">Mulai Chat</button>
     </div>
   </div>
 
@@ -222,14 +223,14 @@
   import { getDatabase, ref, push, onChildAdded, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyAcFRkbZT3PD3BDObS-7T1769uH5Macvd0",
-    authDomain: "reystore-support.firebaseapp.com",
-    databaseURL: "https://reystore-support-default-rtdb.firebaseio.com",
-    projectId: "reystore-support",
-    storageBucket: "reystore-support.firebasestorage.app",
-    messagingSenderId: "446513200960",
-    appId: "1:446513200960:web:cbd40ca4315a8bf47044a5",
-    measurementId: "G-YEBFKLREK5"
+    apiKey: "AIzaSyDMrg2agHatw9REIXs0Pj-894UMhMB08NI",
+    authDomain: "databaseku-4e72e.firebaseapp.com",
+    databaseURL: "https://databaseku-4e72e-default-rtdb.firebaseio.com",
+    projectId: "databaseku-4e72e",
+    storageBucket: "databaseku-4e72e.firebasestorage.app",
+    messagingSenderId: "586627388924",
+    appId: "1:586627388924:web:8b39ecd9f5e5d34ee78e79",
+    measurementId: "G-JSP6R4FN49"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -280,7 +281,6 @@
     const bubble = document.createElement("div");
     bubble.className = `message ${sender}`;
     
-    // Check for "pilihan" buttons from admin
     if (sender === 'agent' && text.startsWith('[pilihan:')) {
         const optionsText = text.substring(9, text.length - 1);
         const optionsArray = optionsText.split('|');
@@ -309,10 +309,9 @@
     if (sender === "agent") showNotification(text);
   }
   
-  // Fungsi baru untuk menangani pilihan yang diklik user
   window.handlePilihan = function(pilihan) {
-      pesanInput.value = pilihan; // Isi input pesan dengan pilihan yang diklik
-      kirimPesan(); // Kirim pesan tersebut
+      pesanInput.value = pilihan;
+      kirimPesan();
   };
 
   function addInfoMessage(text) {
@@ -392,7 +391,6 @@
 
     tampilkanInputPesan();
     
-    // Kirim pesan pertama
     const pesanAwal = `Halo, saya ${nama}. Saya butuh bantuan untuk masalah ${userDepartemen}.`;
     pesanInput.value = pesanAwal;
     kirimPesan();
@@ -433,6 +431,7 @@
   document.addEventListener('DOMContentLoaded', muatChatTersimpan);
   
   window.kirimPesan = kirimPesan;
+  window.mulaiChat = mulaiChat;
 
   pilihanDepartemen.addEventListener('change', () => {
     if (pilihanDepartemen.value !== '') {
