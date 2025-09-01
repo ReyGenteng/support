@@ -163,14 +163,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/fireba
 import { getDatabase, ref, onChildAdded, onChildChanged, onChildRemoved, get, push, set, update } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAcFRkbZT3PD3BDObS-7T1769uH5Macvd0",
-  authDomain: "reystore-support.firebaseapp.com",
-  databaseURL: "https://reystore-support-default-rtdb.firebaseio.com",
-  projectId: "reystore-support",
-  storageBucket: "reystore-support.firebasestorage.app",
-  messagingSenderId: "446513200960",
-  appId: "1:446513200960:web:cbd40ca4315a8bf47044a5",
-  measurementId: "G-YEBFKLREK5"
+  apiKey: "AIzaSyDMrg2agHatw9REIXs0Pj-894UMhMB08NI",
+  authDomain: "databaseku-4e72e.firebaseapp.com",
+  databaseURL: "https://databaseku-4e72e-default-rtdb.firebaseio.com",
+  projectId: "databaseku-4e72e",
+  storageBucket: "databaseku-4e72e.firebasestorage.app",
+  messagingSenderId: "586627388924",
+  appId: "1:586627388924:web:8b39ecd9f5e5d34ee78e79",
+  measurementId: "G-JSP6R4FN49"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -244,10 +244,12 @@ async function openChat(id) {
   currentOwner = chatData.owner || null;
 
   if (!currentOwner) {
-    await update(ref(db, "chats/" + id), { owner: adminName });
+    await update(ref(db, "chats/" + id), { owner: adminName, adminName: adminName });
     currentOwner = adminName;
     const infoMsg = push(ref(db, "chats/" + id + "/messages"));
     set(infoMsg, { sender: "info", text: "Kamu telah terhubung dengan admin " + adminName, time: Date.now() });
+  } else {
+    await update(ref(db, "chats/" + id), { adminName: currentOwner });
   }
 
   chatHeader.textContent = (chatData.username || "(Tanpa nama)") + " - " + currentOwner;
@@ -284,7 +286,6 @@ async function openChat(id) {
     document.querySelector('.messages').classList.add('active');
   }
 
-  // Scroll ke bawah langsung setelah buka chat
   setTimeout(scrollToBottom, 100);
 }
 
